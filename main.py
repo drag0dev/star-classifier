@@ -1,8 +1,12 @@
 import pandas as pd
+import matplotlib.pyplot as plt
 
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 from sklearn.neighbors import KNeighborsClassifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.naive_bayes import GaussianNB
 from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import StandardScaler
 
@@ -31,12 +35,31 @@ if __name__ == "__main__":
     # prep data
     X = data.drop(['Star type'], axis=1)
     y = data['Star type']
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=420)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=43)
 
-    knn = KNeighborsClassifier(n_neighbors=2)
-    knn.fit(X_train, y_train)
+    algorithms = [
+            'KNN',
+            'Random Forest Classifier',
+            'Decision Tree Classifier',
+            'Gaussian Naive Bayes'
+    ]
 
-    y_pred = knn.predict(X_test)
+    # prep models
+    models = [
+            KNeighborsClassifier(n_neighbors=1),
+            RandomForestClassifier(n_estimators=100, max_depth=5),
+            DecisionTreeClassifier(criterion='entropy', splitter='random', max_depth=5),
+            GaussianNB()
+    ]
 
-    acc = accuracy_score(y_test, y_pred)
-    print(acc)
+    # fit models
+    results = []
+    for model, algo in zip(models, algorithms):
+        model.fit(X_train, y_train)
+        prediction = model.predict(X_test)
+        acc = accuracy_score(y_test, prediction)
+        results.append({'Algorithm': algo, 'Accuracy': acc})
+
+    model_accs = pd.DataFrame(results)
+    model_accs = model_accs.sort_values('Accuracy', ascending=False).reset_index(drop=True)
+    print(model_accs)
